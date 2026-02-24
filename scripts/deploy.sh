@@ -15,20 +15,27 @@ chmod -R 775 storage bootstrap/cache
 echo "Linking storage..."
 php artisan storage:link
 
+# MySQL bypass flags for Aiven (Self-signed certs)
+# We try to disable SSL entirely for the import to avoid the certificate chain error.
+MYSQL_FLAGS="-h $DB_HOST -P $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD $DB_DATABASE --ssl-mode=DISABLED"
+
 # Test database connection
 echo "Testing database connection..."
-if ! php artisan db:monitor > /dev/null 2>&1; then
-    echo "ERROR: Could not connect to the database. Check Render Logs for DB variables."
+mysql --version
+if ! mysql $MYSQL_FLAGS -e "SELECT 1" > /dev/null 2>&1; then
+    echo "ERROR: Could not connect to the database via native client. Checking SSL bypass..."
+    # Fallback to older SSL disable flag if needed
+    MYSQL_FLAGS="-h $DB_HOST -P $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD $DB_DATABASE --ssl=0"
 fi
 
 # Check if migrations table exists. If not, it's a fresh DB.
 echo "Checking installation status..."
-if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" --ssl-mode=REQUIRED -e "DESCRIBE channels" > /dev/null 2>&1; then
+if ! mysql $MYSQL_FLAGS -e "DESCRIBE channels" > /dev/null 2>&1; then
     echo "Table 'channels' missing. Initializing database from native SQL template..."
     
-    # Use mysql client for robust import. We use --ssl-mode=REQUIRED for Aiven compatibility.
-    # This ensures the connection is encrypted but skips strict CA verification which causes the self-signed error.
-    if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" --ssl-mode=REQUIRED < database/master_template.sql; then
+    # Use mysql client for robust import with SSL disabled.
+    if mysql $MYSQL_FLAGS < database/master_template.sql; then
+
 
         echo "Initialization successful."
         
