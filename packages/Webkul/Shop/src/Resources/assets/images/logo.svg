@@ -1,0 +1,11 @@
+<svg width="150" height="40" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bold { font: bold 26px sans-serif; }
+    .navy { fill: #060c3b; }
+    .gold { fill: #fbc256; }
+  </style>
+  <text x="5" y="30" class="bold navy">Shop</text>
+  <text x="78" y="30" class="bold gold">Flix</text>
+  <circle cx="140" cy="20" r="8" fill="#fbc256" fill-opacity="0.2"/>
+  <path d="M138 16L144 20L138 24V16Z" fill="#fbc256"/>
+</svg>
