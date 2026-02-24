@@ -6,8 +6,9 @@ if [ ! -f .env ]; then
     touch .env
 fi
 
-# Fix permissions
+# Ensure storage directories exist and are writable
 echo "Fixing permissions..."
+mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
@@ -33,8 +34,9 @@ echo "Checking installation status..."
 if ! mysql $MYSQL_FLAGS -e "DESCRIBE channels" > /dev/null 2>&1; then
     echo "Table 'channels' missing. Initializing database from native SQL template..."
     
-    # Use mysql client for robust import with SSL disabled.
-    if mysql $MYSQL_FLAGS < database/master_template.sql; then
+    # Use mysql client for robust import with SSL disabled and PK requirement bypassed.
+    # We prepend the SET statement to handle Aiven's primary key requirement for the session.
+    if (echo "SET SESSION sql_require_primary_key = 0;"; cat database/master_template.sql) | mysql $MYSQL_FLAGS; then
 
 
         echo "Initialization successful."

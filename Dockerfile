@@ -28,13 +28,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
-
-# Copy existing application directory permissions
+# Copy application files with correct ownership
 COPY --chown=www-data:www-data . /var/www
 
-# Install dependencies
+# Install dependencies as www-data user for better security/permissions
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Copy Nginx config
