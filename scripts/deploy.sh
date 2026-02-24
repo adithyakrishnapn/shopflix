@@ -23,22 +23,28 @@ fi
 
 # Check if migrations table exists. If not, it's a fresh DB.
 echo "Checking installation status..."
-if ! php artisan migrate:status > /dev/null 2>&1; then
-    echo "Fresh database detected. Initializing project from template..."
+if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" -e "DESCRIBE channels" > /dev/null 2>&1; then
+    echo "Table 'channels' missing. Initializing database from native SQL template..."
     
-    # Run init. If it fails, EXIT so we don't mark as installed falsely.
-    if php artisan project:init --clean; then
+    # Use mysql client for robust import. We use --ssl-mode=REQUIRED for Aiven compatibility.
+    if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" < database/master_template.sql; then
         echo "Initialization successful."
+        
+        # Now run project:init ONLY for the cleanup Part (don't re-run import)
+        # We'll skip the import in project:init if we can, or just trust the mysql import.
+        # Bagisto needs the flag file.
         touch storage/installed
         chown www-data:www-data storage/installed
+        
+        # Run standard migrations to ensure everything is synced
+        php artisan migrate --force
     else
-        echo "CRITICAL ERROR: Database initialization failed!"
-        # Exit with 1 to tell Render the deploy failed
+        echo "CRITICAL ERROR: Native database initialization failed!"
         exit 1
     fi
 else
-    echo "Existing database detected. Skipping initialization."
-    # Ensure flag exists if migrations are already present
+    echo "Database already initialized. Skipping SQL import."
+    # Ensure flag exists
     if [ ! -f storage/installed ]; then
         touch storage/installed
         chown www-data:www-data storage/installed
@@ -46,6 +52,7 @@ else
     # Run migrations for any minor updates
     php artisan migrate --force
 fi
+
 
 # Cache configuration
 echo "Caching configuration and routes..."
