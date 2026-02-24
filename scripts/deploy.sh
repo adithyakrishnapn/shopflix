@@ -3,7 +3,7 @@
 # Exit on error
 set -e
 
-echo "--- Starting Deployment Script ---"
+echo "--- Starting Standard Deployment Script ---"
 
 # 1. Permission & Directory Setup
 echo "Step 1: Setting up directories and permissions..."
@@ -25,43 +25,27 @@ chmod -R 775 storage bootstrap/cache
 
 # 2. Storage Link
 echo "Step 2: Linking storage..."
-# We force LOG_CHANNEL=stderr for all artisan commands to avoid permission issues in CLI
+# Force LOG_CHANNEL=stderr for all artisan commands
 export LOG_CHANNEL=stderr
 php artisan storage:link || echo "Storage already linked."
 
-# 3. Database Initialization (Aiven Compatible)
-echo "Step 3: Checking database status..."
+# 3. Standard Laravel/Bagisto Initialization (as per README)
+echo "Step 3: Initializing Database (Migrate & Seed)..."
 
-# Build MySQL flags
-# We use --ssl=0 because the MariaDB client doesn't support --ssl-mode=DISABLED
-MYSQL_FLAGS="-h $DB_HOST -P $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD $DB_DATABASE --ssl=0"
+# Run migrations
+echo "Running migrations..."
+php artisan migrate --force
 
-# Check if 'channels' table exists
-if ! mysql $MYSQL_FLAGS -e "DESCRIBE channels" > /dev/null 2>&1; then
-    echo "Database table 'channels' not found. Initializing from template..."
-    
-    # We attempt to disable the primary key requirement for the session (Aiven specific)
-    # We also disable SSL for the import to avoid the self-signed cert error
-    if (echo "SET SESSION sql_require_primary_key = 0;"; cat database/master_template.sql) | mysql $MYSQL_FLAGS; then
-        echo "Database imported successfully."
-        
-        # Mark as installed for Bagisto
-        touch storage/installed
-        chown www-data:www-data storage/installed
-        
-        echo "Running migrations to sync schema..."
-        php artisan migrate --force
-    else
-        echo "CRITICAL ERROR: Database import failed!"
-        exit 1
-    fi
-else
-    echo "Database tables already exist. Skipping import."
-    if [ ! -f storage/installed ]; then
-        touch storage/installed
-        chown www-data:www-data storage/installed
-    fi
-    php artisan migrate --force
+# Run seeding
+# Note: In production, you might only want to seed once. 
+# But to match the README's "Start from Scratch" flow:
+echo "Running database seeder..."
+php artisan db:seed --force
+
+# Mark as installed for Bagisto
+if [ ! -f storage/installed ]; then
+    touch storage/installed
+    chown www-data:www-data storage/installed
 fi
 
 # 4. Optimization
