@@ -18,8 +18,4 @@ last_error.txt
 phpunit.xml
 tests
 *.md
-nginx.conf
-render.yaml
-Dockerfile
-Dockerfile.mysql
-vercel.json
+
