@@ -23,11 +23,13 @@ fi
 
 # Check if migrations table exists. If not, it's a fresh DB.
 echo "Checking installation status..."
-if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" -e "DESCRIBE channels" > /dev/null 2>&1; then
+if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" --ssl-mode=REQUIRED -e "DESCRIBE channels" > /dev/null 2>&1; then
     echo "Table 'channels' missing. Initializing database from native SQL template..."
     
     # Use mysql client for robust import. We use --ssl-mode=REQUIRED for Aiven compatibility.
-    if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" < database/master_template.sql; then
+    # This ensures the connection is encrypted but skips strict CA verification which causes the self-signed error.
+    if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" --ssl-mode=REQUIRED < database/master_template.sql; then
+
         echo "Initialization successful."
         
         # Now run project:init ONLY for the cleanup Part (don't re-run import)
