@@ -31,7 +31,7 @@ WORKDIR /var/www
 # Copy application files with correct ownership
 COPY --chown=www-data:www-data . /var/www
 
-# Install dependencies as www-data user for better security/permissions
+# Install dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Copy Nginx config
