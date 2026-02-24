@@ -33,7 +33,8 @@ php artisan storage:link || echo "Storage already linked."
 echo "Step 3: Checking database status..."
 
 # Build MySQL flags
-MYSQL_FLAGS="-h $DB_HOST -P $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD $DB_DATABASE --ssl-mode=DISABLED"
+# We use --ssl=0 because the MariaDB client doesn't support --ssl-mode=DISABLED
+MYSQL_FLAGS="-h $DB_HOST -P $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD $DB_DATABASE --ssl=0"
 
 # Check if 'channels' table exists
 if ! mysql $MYSQL_FLAGS -e "DESCRIBE channels" > /dev/null 2>&1; then
