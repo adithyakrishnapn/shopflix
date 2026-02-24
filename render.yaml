@@ -12,33 +12,32 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: host
+        value: shopflix-db
       - key: DB_PORT
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: port
+        value: "3306"
       - key: DB_DATABASE
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: database
+        value: shopflix
       - key: DB_USERNAME
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: user
+        value: shopflix_user
       - key: DB_PASSWORD
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: password
+        generateValue: true
 
-  - type: mysql
+  - type: pserv
     name: shopflix-db
-    plan: free # Change to pro for persistent storage
-    databaseName: shopflix
-    user: shopflix_user
+    env: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: Dockerfile.mysql # We will create this
+    envVars:
+      - key: MYSQL_DATABASE
+        value: shopflix
+      - key: MYSQL_USER
+        value: shopflix_user
+      - key: MYSQL_PASSWORD
+        fromService:
+          name: shopflix-backend
+          type: web
+          property: envVar:DB_PASSWORD
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+
