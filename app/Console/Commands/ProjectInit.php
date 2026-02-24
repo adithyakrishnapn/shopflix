@@ -32,7 +32,8 @@ class ProjectInit extends Command
             return;
         }
 
-        $this->info("Initializing database from master template...");
+        $this->info("Initializing database from template: {$filePath}");
+
 
         try {
             $this->comment("Reading master template...");

@@ -6,35 +6,58 @@ if [ ! -f .env ]; then
     touch .env
 fi
 
+# Fix permissions
+echo "Fixing permissions..."
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
 # Link storage
+echo "Linking storage..."
 php artisan storage:link
 
-# Check if migrations have run. If not, initialize project.
+# Test database connection
+echo "Testing database connection..."
+if ! php artisan db:monitor > /dev/null 2>&1; then
+    echo "ERROR: Could not connect to the database. Check Render Logs for DB variables."
+fi
+
+# Check if migrations table exists. If not, it's a fresh DB.
+echo "Checking installation status..."
 if ! php artisan migrate:status > /dev/null 2>&1; then
-    echo "First time setup: Initializing project..."
-    php artisan project:init --clean
+    echo "Fresh database detected. Initializing project from template..."
     
-    # Mark as installed for Bagisto's middleware
-    touch storage/installed
+    # Run init. If it fails, EXIT so we don't mark as installed falsely.
+    if php artisan project:init --clean; then
+        echo "Initialization successful."
+        touch storage/installed
+        chown www-data:www-data storage/installed
+    else
+        echo "CRITICAL ERROR: Database initialization failed!"
+        # Exit with 1 to tell Render the deploy failed
+        exit 1
+    fi
 else
-    echo "Updating existing installation: Running migrations..."
+    echo "Existing database detected. Skipping initialization."
+    # Ensure flag exists if migrations are already present
+    if [ ! -f storage/installed ]; then
+        touch storage/installed
+        chown www-data:www-data storage/installed
+    fi
+    # Run migrations for any minor updates
     php artisan migrate --force
 fi
 
-# Ensure storage/installed exists if database is already ready
-if [ ! -f storage/installed ]; then
-    touch storage/installed
-fi
-
-# Cache configuration and routes
+# Cache configuration
+echo "Caching configuration and routes..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Start PHP-FPM in background
+# Start PHP-FPM and Nginx
+echo "Starting services..."
 php-fpm -D
-
-# Start Nginx in foreground
 nginx -g "daemon off;"
+
+
 
 
