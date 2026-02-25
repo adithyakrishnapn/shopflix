@@ -58,7 +58,7 @@
                 <div class="text-sm font-normal">
                     @lang('admin::app.users.forget-password.create.powered-by-description', [
                     'bagisto' => '<a class="text-blue-600 hover:underline"
-                        href="https://aalamstore.com/">Aalamstore</a>'
+                        href="https://shopflix.com/">ShopFlix</a>'
                     ])
                 </div>
             </div>

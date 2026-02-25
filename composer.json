@@ -1,7 +1,7 @@
 {
     "name": "bagisto/bagisto",
     "type": "project",
-    "description": "Aalamstore Laravel E-Commerce",
+    "description": "ShopFlix Laravel E-Commerce",
     "keywords": [
         "framework",
         "laravel"
@@ -124,13 +124,15 @@
             ]
         }
     },
-    "repositories": [{
-        "type": "path",
-        "url": "packages/*/*",
-        "options": {
-            "symlink": true
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*/*",
+            "options": {
+                "symlink": true
+            }
         }
-    }],
+    ],
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",

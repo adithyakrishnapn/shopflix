@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'name'    => 'Aalamstore Admin',
+    'name'    => 'ShopFlix Admin',
     'version' => core()->version(),
 ];

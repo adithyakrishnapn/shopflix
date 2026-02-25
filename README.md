@@ -4,11 +4,11 @@ A full-featured, modern e-commerce platform built on **Bagisto** (Laravel-based)
 
 ## Project Overview
 
-**Cream Website** is a sophisticated Laravel 10 & Vue.js-powered e-commerce platform designed for managing online stores with advanced features, multiple payment gateways, international support, and a robust admin dashboard.
+**ShopFlix** is a sophisticated Laravel 10 & Vue.js-powered e-commerce platform designed for managing online stores with advanced features, multiple payment gateways, international support, and a robust admin dashboard.
 
 ## Key Information
 
-- **Project Name**: Cream Website
+- **Project Name**: ShopFlix
 - **Framework**: Laravel 10.0 & Bagisto
 - **PHP Version**: ^8.2
 - **Database**: MySQL
@@ -65,9 +65,9 @@ Follow these steps exactly to get your project running:
 ### 1. Database Creation
 Before doing anything else, you must create a database manually:
 - Open **phpMyAdmin** or your MySQL terminal.
-- Create a new database (e.g., `aalamsto_aalamstore` or `cream_db`).
+- Create a new database (e.g., `shopflix_db`).
   ```sql
-  CREATE DATABASE aalamsto_aalamstore;
+  CREATE DATABASE shopflix_db;
   ```
 
 ### 2. Environment Setup
@@ -131,6 +131,26 @@ Your store will be available at `http://127.0.0.1:8000`.
 - **Vue.js**
 - **Vite** 5.0
 - **Axios**
+
+## 🎨 Branding & Customization
+
+If you need to update the platform's branding (Logos, Names, Links), refer to the following locations:
+
+### Admin Panel Rebranding
+- **Logos**: 
+  - `packages/Webkul/Admin/src/Resources/assets/images/logo.svg`
+  - `packages/Webkul/Admin/src/Resources/assets/images/dark-logo.svg`
+- **Footer Text & Powered By**:
+  - `packages/Webkul/Admin/src/Resources/lang/en/app.php` (footer -> copy-right)
+  - Layout: `packages/Webkul/Admin/src/Resources/views/components/layouts/index.blade.php`
+  - Login View: `packages/Webkul/Admin/src/Resources/views/users/sessions/create.blade.php`
+- **Package Manifests**:
+  - `packages/Webkul/Admin/src/Resources/manifest.php`
+  - `composer.json` (description)
+
+### Shop Rebranding
+- **Logo**: `packages/Webkul/Shop/src/Resources/assets/images/logo.svg`
+- **Footer & Links**: `packages/Webkul/Shop/src/Resources/lang/en/app.php`
 
 ## Core Features
 1. **Payment Gateway Integration** (Razorpay, PayPal)
