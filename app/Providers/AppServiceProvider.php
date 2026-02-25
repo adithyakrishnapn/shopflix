@@ -19,6 +19,13 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
+
+            // Aiven Fix: Disable primary key requirement at session level for migrations/seeds
+            try {
+                \Illuminate\Support\Facades\DB::statement('SET SESSION sql_require_primary_key = 0;');
+            } catch (\Exception $e) {
+                // Ignore if the statement fails (e.g. database doesn't support it)
+            }
         }
 
         ParallelTesting::setUpTestDatabase(function (string $database, int $token) {
