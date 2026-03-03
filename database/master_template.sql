@@ -21,10 +21,11 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `aalamsto_aalamstore`
+-- Database Template Import
 --
-CREATE DATABASE IF NOT EXISTS `aalamsto_aalamstore` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `aalamsto_aalamstore`;
+-- Note: Removed CREATE DATABASE and USE statements to remain database agnostic.
+-- The import will use the database name provided in your environment variables.
+--
 
 -- --------------------------------------------------------
 

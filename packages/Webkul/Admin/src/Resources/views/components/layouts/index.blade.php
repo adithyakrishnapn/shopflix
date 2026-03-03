@@ -85,7 +85,7 @@
                         class="border-t bg-white py-6 text-center text-sm font-normal dark:border-gray-800 dark:bg-gray-900 dark:text-white">
                         @lang('admin::app.components.layouts.powered-by.description', [
                         'bagisto' => '<a class="text-blue-600 hover:underline dark:text-darkBlue"
-                            href="https://aalamstore.com/en/">Aalamstore</a>'
+                            href="https://shopflix.com/">ShopFlix</a>'
                         ])
                     </div>
                 </div>

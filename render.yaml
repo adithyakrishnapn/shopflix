@@ -1,10 +1,19 @@
+envVarGroups:
+  - name: shopflix-production
+    envVars:
+      - key: DB_PASSWORD
+        value: AVNS_478R2aHaIkIXTIR0s__
+      - key: APP_KEY
+        value: base64:ZyglX2iNJYdilwyoyegzP/5mgXyXC8b7zqHK0hd7Fy4=
+
 services:
   - type: web
     name: shopflix-backend
     env: docker
-    plan: free # Change to pro if needed
+    plan: free
     dockerCommand: ./scripts/deploy.sh
     envVars:
+      - fromGroup: shopflix-production
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
@@ -12,33 +21,18 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: host
+        value: mysql-283fc8d8-hastechofficial-bcc5.l.aivencloud.com
       - key: DB_PORT
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: port
+        value: "26764"
       - key: DB_DATABASE
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: database
+        value: defaultdb
       - key: DB_USERNAME
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: user
-      - key: DB_PASSWORD
-        fromService:
-          name: shopflix-db
-          type: mysql
-          property: password
+        value: avnadmin
+      - key: ASSET_URL
+        value: https://shopflix-blue.vercel.app/
+      - key: APP_URL
+        value: https://shopflix-backend.onrender.com # Change this once you have your final Render URL
 
-  - type: mysql
-    name: shopflix-db
-    plan: free # Change to pro for persistent storage
-    databaseName: shopflix
-    user: shopflix_user
+
+
+

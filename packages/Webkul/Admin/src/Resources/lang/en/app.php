@@ -4420,7 +4420,7 @@ return [
     ],
 
     'footer' => [
-        'copy-right' => 'Powered by <a href="https://aalamstore.com/" target="_blank">Aalamstore</a>',
+        'copy-right' => 'Powered by <a href="https://shopflix.com/" target="_blank">ShopFlix</a>',
     ],
 
     'emails' => [
