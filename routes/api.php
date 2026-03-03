@@ -10,3 +10,7 @@
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
