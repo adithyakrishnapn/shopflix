@@ -122,7 +122,7 @@
 
                 <!-- For Large screens -->
                 <div class="max-md:hidden">
-                    <x-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
+                    <x-shop::dropdown position="bottom-{{ (core()->getCurrentLocale()?->direction ?? 'ltr') === 'ltr' ? 'right' : 'left' }}">
                         <x-slot:toggle>
                             <span class="icon-users cursor-pointer text-2xl"></span>
                         </x-slot>

@@ -22,7 +22,15 @@ class Locale
      */
     public function handle($request, Closure $next)
     {
-        $locales = core()->getCurrentChannel()->locales->pluck('code')->toArray();
+        $channel = core()->getCurrentChannel();
+
+        if (! $channel) {
+            app()->setLocale(config('app.locale'));
+
+            return $next($request);
+        }
+
+        $locales = $channel->locales->pluck('code')->toArray();
         $localeCode = core()->getRequestedLocaleCode('locale', false);
 
         if (! $localeCode || ! in_array($localeCode, $locales)) {
@@ -30,7 +38,11 @@ class Locale
         }
 
         if (! $localeCode || ! in_array($localeCode, $locales)) {
-            $localeCode = core()->getCurrentChannel()->default_locale->code;
+            $localeCode = $channel->default_locale?->code;
+        }
+
+        if (! $localeCode) {
+            $localeCode = config('app.locale');
         }
 
         app()->setLocale($localeCode);

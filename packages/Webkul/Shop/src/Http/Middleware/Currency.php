@@ -22,7 +22,13 @@ class Currency
      */
     public function handle($request, Closure $next)
     {
-        $currencies = core()->getCurrentChannel()->currencies->pluck('code')->toArray();
+        $channel = core()->getCurrentChannel();
+
+        if (! $channel) {
+            return $next($request);
+        }
+
+        $currencies = $channel->currencies->pluck('code')->toArray();
         $currencyCode = core()->getRequestedLocaleCode('currency', false);
 
         if (! $currencyCode || ! in_array($currencyCode, $currencies)) {
@@ -30,7 +36,11 @@ class Currency
         }
 
         if (! $currencyCode || ! in_array($currencyCode, $currencies)) {
-            $currencyCode = core()->getCurrentChannel()->base_currency->code;
+            $currencyCode = $channel->base_currency?->code;
+        }
+
+        if (! $currencyCode) {
+            return $next($request);
         }
 
         core()->setCurrentCurrency($currencyCode);

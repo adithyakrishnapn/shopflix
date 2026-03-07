@@ -6,7 +6,7 @@
 
 <!DOCTYPE html>
 
-<html lang="{{ app()->getLocale() }}" dir="{{ core()->getCurrentLocale()->direction }}">
+<html lang="{{ app()->getLocale() }}" dir="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
 
 <head>
 

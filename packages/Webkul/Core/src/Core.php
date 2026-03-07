@@ -169,7 +169,7 @@ class Core
      */
     public function getCurrentChannelCode(): string
     {
-        return $this->getCurrentChannel()?->code;
+        return $this->getCurrentChannel()?->code ?? config('app.channel', 'default');
     }
 
     /**
@@ -205,7 +205,7 @@ class Core
      */
     public function getDefaultChannelCode(): string
     {
-        return $this->getDefaultChannel()?->code;
+        return $this->getDefaultChannel()?->code ?? config('app.channel', 'default');
     }
 
     /**
@@ -213,7 +213,7 @@ class Core
      */
     public function getDefaultLocaleCodeFromDefaultChannel(): string
     {
-        return $this->getDefaultChannel()->default_locale->code;
+        return $this->getDefaultChannel()?->default_locale?->code ?? config('app.locale', 'en');
     }
 
     /**
@@ -276,6 +276,11 @@ class Core
     {
         if ($this->currentLocale) {
             return $this->currentLocale;
+        }
+
+        // Skip database query during installation
+        if (config('installer.mode')) {
+            return null;
         }
 
         $this->currentLocale = $this->localeRepository->findOneByField('code', app()->getLocale());

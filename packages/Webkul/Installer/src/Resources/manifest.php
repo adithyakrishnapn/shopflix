@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'name'    => 'Aalamstore Installer',
+    'name'    => config('app.name', 'Bagisto').' Installer',
     'version' => core()->version(),
 ];

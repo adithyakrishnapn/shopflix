@@ -100,14 +100,21 @@ php artisan key:generate
 # Create database tables
 php artisan migrate
 
-# Populate database with initial data (Categories, Settings, etc.)
+# Enable Bagisto setup mode (does NOT seed sample/base catalog data)
 php artisan db:seed
 
 # Link storage for images
 php artisan storage:link
 ```
 
-### 5. Build & Start
+### 5. Complete Bagisto Setup Wizard
+After running migrations and `db:seed`, open:
+
+`http://127.0.0.1:8000/install`
+
+Then finish the setup wizard (environment, channel locale/currency, admin account, optional sample products).
+
+### 6. Build & Start
 ```bash
 # Build frontend assets
 npm run build
@@ -116,6 +123,13 @@ npm run build
 php artisan serve
 ```
 Your store will be available at `http://127.0.0.1:8000`.
+
+### Optional: Legacy Seeder Behavior
+If you explicitly want `php artisan db:seed` to run Bagisto base seeders directly, set this in `.env`:
+
+```env
+BAGISTO_SEED_BASE_DATA=true
+```
 
 ## Technology Stack
 
@@ -164,8 +178,10 @@ If you need to update the platform's branding (Logos, Names, Links), refer to th
 - **Check Logs**: If something fails, check `storage/logs/laravel.log`.
 - **Clear Cache**: Run `php artisan optimize:clear` to refresh settings.
 - **Database Error**: Ensure your `.env` credentials match your phpMyAdmin setup.
+- **Installer Not Showing**: Run `php artisan db:seed` once, then open `/install` directly.
+- **Homepage locale/channel error before setup**: This usually means setup is incomplete. Complete the installer wizard first.
 
 ---
 
-**Last Updated**: February 2026  
+**Last Updated**: March 2026  
 **License**: [MIT](LICENSE)

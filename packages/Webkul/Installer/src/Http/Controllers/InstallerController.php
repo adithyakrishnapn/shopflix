@@ -181,7 +181,7 @@ class InstallerController extends Controller
 
         $filePath = storage_path('installed');
 
-        File::put($filePath, 'Your Aalamstore App is Successfully Installed');
+        File::put($filePath, 'Your '.config('app.name', 'Bagisto').' App is Successfully Installed');
 
         Event::dispatch('bagisto.installed');
 

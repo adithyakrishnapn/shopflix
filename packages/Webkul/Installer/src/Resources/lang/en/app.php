@@ -723,18 +723,18 @@ return [
             ],
 
             'installation-processing' => [
-                'bagisto'      => 'Installation Aalamstore',
+                'bagisto'      => 'Installation :app_name',
                 'bagisto-info' => 'Creating the database tables, this can take a few moments',
                 'title'        => 'Installation',
             ],
 
             'installation-completed' => [
                 'admin-panel'                => 'Admin Panel',
-                'bagisto-forums'             => 'Aalamstore Forum',
+                'bagisto-forums'             => ':app_name Forum',
                 'customer-panel'             => 'Customer Panel',
-                'explore-bagisto-extensions' => 'Explore Aalamstore Extension',
+                'explore-bagisto-extensions' => 'Explore :app_name Extension',
                 'title'                      => 'Installation Completed',
-                'title-info'                 => 'Aalamstore is Successfully installed on your system.',
+                'title-info'                 => ':app_name is Successfully installed on your system.',
             ],
 
             'ready-for-installation' => [

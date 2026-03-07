@@ -290,7 +290,8 @@
                         <p class="mb-6 w-full place-self-end text-left">
                             <a
                                 class="bg-white text-blue-600 underline"
-                                href="https://aalamstore.com/en/"
+                                href="#"
+                                target="_blank"
                             >
                                 @lang('installer::app.installer.index.bagisto')
                             </a>
@@ -711,7 +712,7 @@
                     <div class="flex h-[484px] flex-col justify-center gap-4 overflow-y-auto px-7 py-4">
                         <div class="flex flex-col gap-4">
                             <p class="text-lg font-bold text-gray-800">
-                                @lang('installer::app.installer.index.installation-processing.bagisto')
+                                @lang('installer::app.installer.index.installation-processing.bagisto', ['app_name' => config('app.name', 'Bagisto')])
                             </p>
 
                             <div class="grid gap-2.5">
@@ -760,7 +761,7 @@
                                     <x-installer::form.control-group.control
                                         type="text"
                                         name="app_name"
-                                        ::value="envData.app_name ?? 'Aalamstore'"
+                                        ::value="envData.app_name ?? '{{ config('app.name', 'Bagisto') }}'"
                                         rules="required"
                                         :label="trans('installer::app.installer.index.environment-configuration.application-name')"
                                         :placeholder="trans('installer::app.installer.index.environment-configuration.bagisto')"
@@ -1180,7 +1181,7 @@
                                 </p>
 
                                 <p class="text-sm text-gray-600">
-                                    @lang('installer::app.installer.index.installation-completed.title-info')
+                                    @lang('installer::app.installer.index.installation-completed.title-info', ['app_name' => config('app.name', 'Bagisto')])
                                 </p>
 
                                 <!-- Admin & Shop both buttons -->
@@ -1208,14 +1209,14 @@
                             href=""
                             class="cursor-pointer text-xs font-semibold text-blue-600"
                         >
-                            @lang('installer::app.installer.index.installation-completed.bagisto-forums')
+                            @lang('installer::app.installer.index.installation-completed.bagisto-forums', ['app_name' => config('app.name', 'Bagisto')])
                         </a>
 
                         <a
                             href=""
                             class="cursor-pointer rounded-md border border-blue-700 bg-white px-3 py-1.5 font-semibold text-blue-600 hover:opacity-90"
                         >
-                            @lang('installer::app.installer.index.installation-completed.explore-bagisto-extensions')
+                            @lang('installer::app.installer.index.installation-completed.explore-bagisto-extensions', ['app_name' => config('app.name', 'Bagisto')])
                         </a>
                     </div>
                 </div>
@@ -1291,7 +1292,7 @@
 
                                         this.envData = { ...this.envData, ...params };
                                     } else {
-                                        setErrors({ 'db_connection': ["Aalamstore currently supports MySQL only."] });
+                                        setErrors({ 'db_connection': ["{{ config('app.name', 'Bagisto') }} currently supports MySQL only."] });
                                     }
                                 },
 

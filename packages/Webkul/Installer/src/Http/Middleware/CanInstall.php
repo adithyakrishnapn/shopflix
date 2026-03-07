@@ -18,6 +18,9 @@ class CanInstall
     public function handle(Request $request, Closure $next)
     {
         if (Str::contains($request->getPathInfo(), '/install')) {
+            // Set a flag to indicate we're in installer mode
+            config(['installer.mode' => true]);
+            
             if ($this->isAlreadyInstalled() && ! $request->ajax()) {
                 return redirect()->route('shop.home.index');
             }
@@ -41,12 +44,17 @@ class CanInstall
             return true;
         }
 
-        if (app(DatabaseManager::class)->isInstalled()) {
-            touch(storage_path('installed'));
+        try {
+            if (app(DatabaseManager::class)->isInstalled()) {
+                touch(storage_path('installed'));
 
-            Event::dispatch('bagisto.installed');
+                Event::dispatch('bagisto.installed');
 
-            return true;
+                return true;
+            }
+        } catch (\Exception $e) {
+            // Database not ready yet during installation
+            return false;
         }
 
         return false;
