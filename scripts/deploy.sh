@@ -37,10 +37,17 @@ echo "Step 3: Initializing Database (Fresh Migrate & Seed)..."
 echo "Running migrate:fresh..."
 php artisan migrate:fresh --force --seed
 
-# Mark as installed for Bagisto
-if [ ! -f storage/installed ]; then
+# Only mark as installed if we're auto-seeding data
+# If BAGISTO_SEED_BASE_DATA is true, data was seeded, so mark as installed
+# Otherwise, user needs to visit /install to complete setup
+if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
+    echo "Auto-seed enabled - marking as installed"
     touch storage/installed
     chown www-data:www-data storage/installed
+else
+    echo "Auto-seed disabled - user must complete installation via /install"
+    # Ensure no installed file exists so installer redirects work
+    rm -f storage/installed
 fi
 
 # 4. Optimization
