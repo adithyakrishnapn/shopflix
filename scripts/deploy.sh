@@ -30,12 +30,19 @@ export LOG_CHANNEL=stderr
 php artisan storage:link || echo "Storage already linked."
 
 # 3. Standard Laravel/Bagisto Initialization (as per README)
-echo "Step 3: Initializing Database (Fresh Migrate & Seed)..."
+echo "Step 3: Initializing Database (Fresh Migrate)..."
 
 # We use migrate:fresh to wipe any half-created tables from previous failed attempts.
 # This ensures a clean slate as per the "Start from Scratch" flow.
+# By default, we do NOT seed - user completes setup via /install web interface
 echo "Running migrate:fresh..."
-php artisan migrate:fresh --force --seed
+if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
+    echo "Auto-seed enabled - running migrate:fresh with seed..."
+    php artisan migrate:fresh --force --seed
+else
+    echo "Auto-seed disabled - running migrate:fresh only (no seed)..."
+    php artisan migrate:fresh --force
+fi
 
 # Only mark as installed if we're auto-seeding data
 # If BAGISTO_SEED_BASE_DATA is true, data was seeded, so mark as installed
