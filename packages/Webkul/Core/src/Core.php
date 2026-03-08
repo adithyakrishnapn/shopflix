@@ -283,10 +283,15 @@ class Core
             return null;
         }
 
-        $this->currentLocale = $this->localeRepository->findOneByField('code', app()->getLocale());
+        try {
+            $this->currentLocale = $this->localeRepository->findOneByField('code', app()->getLocale());
 
-        if (! $this->currentLocale) {
-            $this->currentLocale = $this->localeRepository->findOneByField('code', config('app.fallback_locale'));
+            if (! $this->currentLocale) {
+                $this->currentLocale = $this->localeRepository->findOneByField('code', config('app.fallback_locale'));
+            }
+        } catch (\Exception $e) {
+            // Database not ready or locale table empty - return null gracefully
+            return null;
         }
 
         return $this->currentLocale;
