@@ -55,6 +55,14 @@ class Handler extends BaseHandler
     private function handleHttpException(): void
     {
         $this->renderable(function (HttpException $exception, Request $request) {
+            // During installation, return simple error to avoid database queries
+            if (!file_exists(storage_path('installed'))) {
+                return response()->json([
+                    'error' => 'Application not installed',
+                    'message' => 'Please complete the installation at /install'
+                ], $exception->getStatusCode());
+            }
+
             $path = $request->is(config('app.admin_url').'/*') ? 'admin' : 'shop';
 
             $errorCode = in_array($exception->getStatusCode(), [401, 403, 404, 503])
@@ -78,6 +86,15 @@ class Handler extends BaseHandler
     private function handleServerException(): void
     {
         $this->renderable(function (Throwable $throwable, Request $request) {
+            // During installation, return simple error to avoid database queries
+            if (!file_exists(storage_path('installed'))) {
+                return response()->json([
+                    'error' => 'Application not installed',
+                    'message' => 'Please complete the installation at /install',
+                    'debug' => config('app.debug') ? $throwable->getMessage() : null
+                ], 500);
+            }
+
             $path = $request->is(config('app.admin_url').'/*') ? 'admin' : 'shop';
 
             $errorCode = 500;
