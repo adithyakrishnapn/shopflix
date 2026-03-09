@@ -398,7 +398,7 @@ class Core
      */
     public function getChannelBaseCurrency()
     {
-        return $this->getCurrentChannel()->base_currency;
+        return $this->getCurrentChannel()?->base_currency;
     }
 
     /**

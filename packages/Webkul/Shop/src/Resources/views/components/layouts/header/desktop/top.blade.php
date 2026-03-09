@@ -69,7 +69,7 @@
                         @click="currencyToggler = ! currencyToggler"
                     >
                         <span>
-                            {{ core()->getCurrentCurrency()->symbol . ' ' . core()->getCurrentCurrencyCode() }}
+                            {{ core()->getCurrentCurrency()?->symbol . ' ' . core()->getCurrentCurrencyCode() }}
                         </span>
 
                         <span

@@ -1272,15 +1272,25 @@
                             },
 
                             isLoading: false,
+
+                            preventUnload: null,
                         }
                     },
 
                     mounted() {
-                        const preventUnload = (event) => {
+                        this.preventUnload = (event) => {
                             event.preventDefault();
                         };
 
-                        window.addEventListener('beforeunload', preventUnload);
+                        window.addEventListener('beforeunload', this.preventUnload);
+                    },
+
+                    watch: {
+                        currentStep(newStep) {
+                            if (newStep === 'installationCompleted' && this.preventUnload) {
+                                window.removeEventListener('beforeunload', this.preventUnload);
+                            }
+                        }
                     },
 
                     methods: {

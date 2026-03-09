@@ -479,7 +479,7 @@
 
                 data() {
                     return {
-                        isWishlist: Boolean("{{ (boolean) auth()->guard()->user()?->wishlist_items->where('channel_id', core()->getCurrentChannel()->id)->where('product_id', $product->id)->count() }}"),
+                        isWishlist: Boolean("{{ (boolean) auth()->guard()->user()?->wishlist_items->where('channel_id', core()->getCurrentChannel()?->id)->where('product_id', $product->id)->count() }}"),
 
                         isCustomer: '{{ auth()->guard('customer')->check() }}',
 

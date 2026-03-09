@@ -21,12 +21,12 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="base-url" content="{{ url()->to('/') }}">
-    <meta name="currency" content="{{ core()->getCurrentCurrency()->toJson() }}">
+    <meta name="currency" content="{{ core()->getCurrentCurrency()?->toJson() }}">
 
     @stack('meta')
 
     <link rel="icon" sizes="16x16"
-        href="{{ core()->getCurrentChannel()->favicon_url ?? bagisto_asset('images/favicon.ico') }}" />
+        href="{{ core()->getCurrentChannel()?->favicon_url ?? bagisto_asset('images/favicon.ico') }}" />
 
     @bagistoVite(['src/Resources/assets/css/app.css', 'src/Resources/assets/js/app.js'])
 

@@ -28,7 +28,7 @@
 
                 <p class="mt-4 text-lg text-zinc-500 max-md:text-sm">
                     {{ 
-                        $errorCode === 503 && core()->getCurrentChannel()->maintenance_mode_text != ""
+                        $errorCode === 503 && core()->getCurrentChannel()?->maintenance_mode_text != ""
                         ? core()->getCurrentChannel()->maintenance_mode_text : trans("admin::app.errors.{$errorCode}.description")
                     }}
                 </p>

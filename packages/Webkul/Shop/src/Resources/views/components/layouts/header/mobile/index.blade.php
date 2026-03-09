@@ -26,7 +26,7 @@
                     <div class="flex items-center justify-between">
                         <a href="{{ route('shop.home.index') }}">
                             <img
-                                src="{{ core()->getCurrentChannel()->logo_url ?? bagisto_asset('images/logo.svg') }}"
+                                src="{{ core()->getCurrentChannel()?->logo_url ?? bagisto_asset('images/logo.svg') }}"
                                 alt="{{ config('app.name') }}"
                                 width="131"
                                 height="29"
@@ -379,7 +379,7 @@
         </div>
 
         <!-- Localization & Currency Section -->
-        @if(core()->getCurrentChannel()->locales()->count() > 1 || core()->getCurrentChannel()->currencies()->count() > 1 )
+        @if(core()->getCurrentChannel()?->locales()->count() > 1 || core()->getCurrentChannel()?->currencies()->count() > 1 )
             <div class="w-full border-t bg-white">
                 <div class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-zinc-200 bg-white px-5 ltr:left-0 rtl:right-0">
                     <!-- Filter Drawer -->
@@ -393,7 +393,7 @@
                                 class="flex cursor-pointer items-center gap-x-2.5 px-2.5 py-3.5 text-lg font-medium uppercase max-md:py-3 max-sm:text-base"
                                 role="button"
                             >
-                                {{ core()->getCurrentCurrency()->symbol . ' ' . core()->getCurrentCurrencyCode() }}
+                                {{ core()->getCurrentCurrency()?->symbol . ' ' . core()->getCurrentCurrencyCode() }}
                             </div>
                         </x-slot>
 
@@ -442,7 +442,7 @@
                                     height="16"
                                 />
 
-                                {{ core()->getCurrentChannel()->locales()->orderBy('name')->where('code', app()->getLocale())->value('name') }}
+                                {{ core()->getCurrentChannel()?->locales()->orderBy('name')->where('code', app()->getLocale())->value('name') }}
                             </div>
                         </x-slot>
 

@@ -1,6 +1,6 @@
 {!! view_render_event('bagisto.shop.layout.header.before') !!}
 
-@if(core()->getCurrentChannel()->locales()->count() > 1 || core()->getCurrentChannel()->currencies()->count() > 1 )
+@if(core()->getCurrentChannel()?->locales()->count() > 1 || core()->getCurrentChannel()?->currencies()->count() > 1 )
     <div class="max-lg:hidden">
         <x-shop::layouts.header.desktop.top />
     </div>
