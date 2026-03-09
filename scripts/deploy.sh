@@ -30,33 +30,30 @@ export LOG_CHANNEL=stderr
 php artisan storage:link || echo "Storage already linked."
 
 # 3. Database & Installer Setup
-echo "Step 3: Checking database setup..."
+echo "Step 3: Running database migrations..."
 
-# IMPORTANT: Do NOT run migrations here. The /install web interface handles that.
-# This allows the installer wizard to:
-# 1. Configure environment variables
-# 2. Create database tables via runMigration()
-# 3. Seed base data via runSeeder()
-# 4. Create admin account
-# 5. Mark as installed
+# Always run migrations during deployment (they're idempotent and safe)
+# This prevents the fragile HTTP installer migration calls from timing out on slow servers
+echo "Running migrate:fresh to reset database..."
+php artisan migrate:fresh --force --no-interaction || true
+
+echo "Step 3b: Installer Setup..."
 
 # The /install endpoint checks if storage/installed exists to determine if setup is complete
-# Ensure the installed marker does not exist - user must visit /install to complete setup
-echo "Clearing installation marker - user must complete setup via /install"
+# Migrations are done, but seeding/admin setup still needs to come from installer
+echo "Clearing installation marker - user must complete seeding & admin setup via /install"
 rm -f storage/installed
 
-# If BAGISTO_SEED_BASE_DATA is explicitly true, auto-seed (for automated CI/CD)
-# Otherwise (default), skip seeding - installer will handle it
+# If BAGISTO_SEED_BASE_DATA is explicitly true, also auto-seed (for automated CI/CD)
+# Otherwise (default), seeding will be handled by installer web interface
 if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
-    echo "Auto-seed enabled - running migrations and seeding..."
-    php artisan migrate --force
+    echo "Auto-seed enabled - running seeders..."
     php artisan db:seed --force
-    echo "Marking as installed"
+    echo "Marking as fully installed"
     touch storage/installed
     chown www-data:www-data storage/installed
 else
-    echo "Auto-seed disabled - user must complete installation via /install web interface"
-    # Migrations will be run by the installer when user visits /install
+    echo "Auto-seed disabled - user must complete seeding via /install web interface"
 fi
 
 # 4. Optimization

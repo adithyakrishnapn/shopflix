@@ -55,6 +55,14 @@ class DatabaseManager
     public function migration()
     {
         try {
+            // Check if migrations have already been run (tables exist)
+            if (Schema::hasTable('channels')) {
+                return response()->json([
+                    'data'   => true,
+                    'output' => 'Migrations already completed (channels table exists).',
+                ]);
+            }
+
             // Migration can take longer on low-resource instances.
             set_time_limit(0);
 
