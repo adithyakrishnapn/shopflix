@@ -29,32 +29,34 @@ echo "Step 2: Linking storage..."
 export LOG_CHANNEL=stderr
 php artisan storage:link || echo "Storage already linked."
 
-# 3. Standard Laravel/Bagisto Initialization (as per README)
-echo "Step 3: Initializing Database (Fresh Migrate)..."
+# 3. Database & Installer Setup
+echo "Step 3: Checking database setup..."
 
-# We use migrate:fresh to wipe any half-created tables from previous failed attempts.
-# This ensures a clean slate as per the "Start from Scratch" flow.
-# By default, we do NOT seed - user completes setup via /install web interface
-echo "Running migrate:fresh..."
-if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
-    echo "Auto-seed enabled - running migrate:fresh with seed..."
-    php artisan migrate:fresh --force --seed
-else
-    echo "Auto-seed disabled - running migrate:fresh only (no seed)..."
-    php artisan migrate:fresh --force
-fi
+# IMPORTANT: Do NOT run migrations here. The /install web interface handles that.
+# This allows the installer wizard to:
+# 1. Configure environment variables
+# 2. Create database tables via runMigration()
+# 3. Seed base data via runSeeder()
+# 4. Create admin account
+# 5. Mark as installed
 
-# Only mark as installed if we're auto-seeding data
-# If BAGISTO_SEED_BASE_DATA is true, data was seeded, so mark as installed
-# Otherwise, user needs to visit /install to complete setup
+# The /install endpoint checks if storage/installed exists to determine if setup is complete
+# Ensure the installed marker does not exist - user must visit /install to complete setup
+echo "Clearing installation marker - user must complete setup via /install"
+rm -f storage/installed
+
+# If BAGISTO_SEED_BASE_DATA is explicitly true, auto-seed (for automated CI/CD)
+# Otherwise (default), skip seeding - installer will handle it
 if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
-    echo "Auto-seed enabled - marking as installed"
+    echo "Auto-seed enabled - running migrations and seeding..."
+    php artisan migrate --force
+    php artisan db:seed --force
+    echo "Marking as installed"
     touch storage/installed
     chown www-data:www-data storage/installed
 else
-    echo "Auto-seed disabled - user must complete installation via /install"
-    # Ensure no installed file exists so installer redirects work
-    rm -f storage/installed
+    echo "Auto-seed disabled - user must complete installation via /install web interface"
+    # Migrations will be run by the installer when user visits /install
 fi
 
 # 4. Optimization

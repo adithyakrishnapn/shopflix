@@ -1403,14 +1403,17 @@
 
                             this.$axios.post("{{ route('installer.env_file_setup') }}", this.envData)
                                 .then((response) => {
-                                    this.runMigartion(setErrors);
+                                    // Give the dev server a short window to reload after .env changes.
+                                    setTimeout(() => this.runMigartion(setErrors, 1), 1200);
                             })
                             .catch(error => {
-                                setErrors(error.response.data.errors);
+                                setErrors(error?.response?.data?.errors || {
+                                    env_file_setup: ['Unable to save environment configuration. Please check server logs.']
+                                });
                             });
                         },
 
-                        runMigartion(setErrors) {
+                        runMigartion(setErrors, attempt = 1) {
                             this.$axios.post("{{ route('installer.run_migration') }}")
                                 .then((response) => {
                                     this.completeStep('readyForInstallation', 'envConfiguration', 'active', 'complete');
@@ -1418,7 +1421,15 @@
                                     this.currentStep = 'envConfiguration';
                                 })
                                 .catch(error => {
-                                    alert(error.response.data.error);
+                                    if (! error?.response && attempt < 5) {
+                                        setTimeout(() => this.runMigartion(setErrors, attempt + 1), 1500);
+
+                                        return;
+                                    }
+
+                                    const message = error?.response?.data?.error || 'Database migration failed or timed out. Please retry and check server logs.';
+
+                                    alert(message);
 
                                     this.currentStep = 'envDatabase';
                                 });

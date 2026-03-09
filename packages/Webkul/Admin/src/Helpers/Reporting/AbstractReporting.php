@@ -52,12 +52,17 @@ abstract class AbstractReporting
      */
     public function setChannel(?string $code = null): self
     {
-        $this->channelIds = core()->getAllChannels()
-            ->filter(function ($channel) use ($code) {
-                return $code ? $channel->code == $code : true;
-            })
-            ->pluck('id')
-            ->toArray();
+        try {
+            $this->channelIds = core()->getAllChannels()
+                ->filter(function ($channel) use ($code) {
+                    return $code ? $channel->code == $code : true;
+                })
+                ->pluck('id')
+                ->toArray();
+        } catch (\Throwable $e) {
+            // Handle case when channels table doesn't exist (during migration/installation)
+            $this->channelIds = [];
+        }
 
         // $this->channelIds = [2];
 

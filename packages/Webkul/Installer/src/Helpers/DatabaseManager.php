@@ -55,7 +55,18 @@ class DatabaseManager
     public function migration()
     {
         try {
-            Artisan::call('migrate:fresh');
+            // Migration can take longer on low-resource instances.
+            set_time_limit(0);
+
+            Artisan::call('migrate:fresh', [
+                '--force'          => true,
+                '--no-interaction' => true,
+            ]);
+
+            return response()->json([
+                'data'   => true,
+                'output' => Artisan::output(),
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'error' => $e->getMessage(),
