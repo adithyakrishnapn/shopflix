@@ -34,8 +34,9 @@ echo "Step 3: Running database migrations..."
 
 # Always run migrations during deployment (they're idempotent and safe)
 # This prevents the fragile HTTP installer migration calls from timing out on slow servers
-echo "Running migrate:fresh to reset database..."
-php artisan migrate:fresh --force --no-interaction || true
+# Use 'migrate' (incremental) instead of 'migrate:fresh' (drop/recreate) - much faster on Render
+echo "Running incremental migrations (fast, idempotent)..."
+php artisan migrate --force --no-interaction || true
 
 echo "Step 3b: Installer Setup..."
 

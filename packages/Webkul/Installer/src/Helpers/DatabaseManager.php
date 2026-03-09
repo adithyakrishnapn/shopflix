@@ -66,7 +66,8 @@ class DatabaseManager
             // Migration can take longer on low-resource instances.
             set_time_limit(0);
 
-            Artisan::call('migrate:fresh', [
+            // Use incremental 'migrate' instead of 'migrate:fresh' (drop/recreate is very slow)
+            Artisan::call('migrate', [
                 '--force'          => true,
                 '--no-interaction' => true,
             ]);
