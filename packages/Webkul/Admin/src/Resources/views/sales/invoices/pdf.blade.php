@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html
     lang="{{ app()->getLocale() }}"
-    dir="{{ core()->getCurrentLocale()->direction }}"
+    dir="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}"
 >
     <head>
         <!-- meta tags -->
@@ -233,8 +233,8 @@
         </style>
     </head>
 
-    <body dir="{{ core()->getCurrentLocale()->direction }}">
-        <div class="logo-container {{ core()->getCurrentLocale()->direction }}">
+    <body dir="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
+        <div class="logo-container {{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
             @if (core()->getConfigData('sales.invoice_settings.pdf_print_outs.logo'))
                 <img src="data:image/png;base64,{{ base64_encode(file_get_contents(Storage::url(core()->getConfigData('sales.invoice_settings.pdf_print_outs.logo')))) }}" style="width:25%"/>
             @endif
@@ -248,7 +248,7 @@
 
             <div class="page-content">
                 <!-- Invoice Information -->
-                <table class="{{ core()->getCurrentLocale()->direction }}">
+                <table class="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
                     <tbody>
                         <tr>
                             @if (core()->getConfigData('sales.invoice_settings.pdf_print_outs.invoice_id'))
@@ -301,7 +301,7 @@
                 </table>
                 
                 <!-- Invoice Information -->
-                <table class="{{ core()->getCurrentLocale()->direction }}">
+                <table class="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
                     <tbody>
                         <tr>
                             @if (! empty(core()->getConfigData('sales.shipping.origin.country')))
@@ -350,7 +350,7 @@
                 </table>
 
                 <!-- Billing & Shipping Address -->
-                <table class="{{ core()->getCurrentLocale()->direction }}">
+                <table class="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
                     <thead>
                         <tr>
                             @if ($invoice->order->billing_address)
@@ -409,7 +409,7 @@
                 </table>
 
                 <!-- Payment & Shipping Methods -->
-                <table class="{{ core()->getCurrentLocale()->direction }}">
+                <table class="{{ core()->getCurrentLocale()?->direction ?? 'ltr' }}">
                     <thead>
                         <tr>
                             <th style="width: 50%">
