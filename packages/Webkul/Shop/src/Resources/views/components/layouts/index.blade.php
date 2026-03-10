@@ -45,9 +45,7 @@
     @stack('styles')
 
     <style>
-    {
-         ! ! core()->getConfigData('general.content.custom_scripts.custom_css') ! !
-    }
+        {!! core()->getConfigData('general.content.custom_scripts.custom_css') !!}
     </style>
 
     {!! view_render_event('bagisto.shop.layout.head.after') !!}
@@ -114,9 +112,7 @@
     {!! view_render_event('bagisto.shop.layout.vue-app-mount.after') !!}
 
     <script type="text/javascript">
-    {
-        !!core() - > getConfigData('general.content.custom_scripts.custom_javascript') !!
-    }
+        {!! core()->getConfigData('general.content.custom_scripts.custom_javascript') !!}
     </script>
 </body>
 

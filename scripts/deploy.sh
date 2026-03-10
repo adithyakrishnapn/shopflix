@@ -21,9 +21,6 @@ if [ ! -f .env ]; then
     touch .env
 fi
 
-chown -R www-data:www-data storage bootstrap/cache || echo "Skipping chown (insufficient permissions)."
-chmod -R 775 storage bootstrap/cache || echo "Skipping chmod update."
-
 # 2. Storage Link
 echo "Step 2: Linking storage..."
 # Force LOG_CHANNEL=stderr for all artisan commands
@@ -69,6 +66,11 @@ echo "Step 4: Caching configuration..."
 php artisan config:cache || echo "config:cache failed, continuing startup"
 php artisan route:cache || echo "route:cache failed, continuing startup"
 php artisan view:cache || echo "view:cache failed, continuing startup"
+
+# 4.5 Fix Permissions
+echo "Step 4.5: Fixing permissions for generated files..."
+chown -R www-data:www-data storage bootstrap/cache || echo "Skipping chown (insufficient permissions)."
+chmod -R 775 storage bootstrap/cache || echo "Skipping chmod update."
 
 # 5. Start Services
 echo "Step 5: Starting services (PHP-FPM & Nginx)..."
