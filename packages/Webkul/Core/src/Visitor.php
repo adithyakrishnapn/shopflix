@@ -3,6 +3,7 @@
 namespace Webkul\Core;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 use Shetabit\Visitor\Visitor as BaseVisitor;
 use Webkul\Core\Jobs\UpdateCreateVisitIndex;
 
@@ -17,12 +18,18 @@ class Visitor extends BaseVisitor
     {
         foreach ($this->except as $path) {
             if ($this->request->is($path)) {
-                dd(1);
-
                 return;
             }
         }
-        UpdateCreateVisitIndex::dispatch($model, $this->prepareLog());
+
+        try {
+            $log = $this->prepareLog();
+        } catch (\Throwable $exception) {
+            // Visitor analytics should never break storefront requests.
+            return;
+        }
+
+        UpdateCreateVisitIndex::dispatch($model, $log);
     }
 
     /**
@@ -41,9 +48,21 @@ class Visitor extends BaseVisitor
      */
     protected function prepareLog(): array
     {
-        return array_merge(parent::prepareLog(), [
-            'channel_id' => core()->getCurrentChannel()->id,
-        ]);
+        $log = parent::prepareLog();
+
+        $currentChannel = core()->getCurrentChannel();
+
+        $visitTable = config('visitor.table_name', 'visits');
+
+        if (
+            $currentChannel?->id
+            && Schema::hasTable($visitTable)
+            && Schema::hasColumn($visitTable, 'channel_id')
+        ) {
+            $log['channel_id'] = $currentChannel->id;
+        }
+
+        return $log;
     }
 
     /**

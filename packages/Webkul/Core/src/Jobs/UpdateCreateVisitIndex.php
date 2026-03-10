@@ -35,14 +35,19 @@ class UpdateCreateVisitIndex implements ShouldQueue
     {
         $visitRepository = app(VisitRepository::class);
 
-        $lastVisit = $visitRepository->where(Arr::only($this->log, [
+        $whereConditions = Arr::only($this->log, [
             'method',
             'url',
             'ip',
             'visitor_id',
             'visitor_type',
-            'channel_id',
-        ]))->latest()->first();
+        ]);
+
+        if (array_key_exists('channel_id', $this->log)) {
+            $whereConditions['channel_id'] = $this->log['channel_id'];
+        }
+
+        $lastVisit = $visitRepository->where($whereConditions)->latest()->first();
 
         if ($lastVisit?->created_at->isToday()) {
             return;
@@ -51,8 +56,10 @@ class UpdateCreateVisitIndex implements ShouldQueue
         if ($this->model !== null && method_exists($this->model, 'visitLogs')) {
             $visit = $this->model->visitLogs()->create($this->log);
 
-            $visit->channel_id = $this->log['channel_id'];
-            $visit->save();
+            if (array_key_exists('channel_id', $this->log)) {
+                $visit->channel_id = $this->log['channel_id'];
+                $visit->save();
+            }
         } else {
             $visitRepository->create($this->log);
         }
