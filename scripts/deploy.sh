@@ -1,9 +1,10 @@
 #!/bin/sh
 
-# Exit on error
+# Exit on error for critical startup commands only.
 set -e
 
 echo "--- Starting Standard Deployment Script ---"
+echo "Runtime PORT: ${PORT:-10000}"
 
 # 1. Permission & Directory Setup
 echo "Step 1: Setting up directories and permissions..."
@@ -20,14 +21,14 @@ if [ ! -f .env ]; then
     touch .env
 fi
 
-chown -R www-data:www-data storage bootstrap/cache
-chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache || echo "Skipping chown (insufficient permissions)."
+chmod -R 775 storage bootstrap/cache || echo "Skipping chmod update."
 
 # 2. Storage Link
 echo "Step 2: Linking storage..."
 # Force LOG_CHANNEL=stderr for all artisan commands
 export LOG_CHANNEL=stderr
-php artisan storage:link || echo "Storage already linked."
+php artisan storage:link || echo "Storage already linked or link failed."
 
 # 3. Database & Installer Setup
 echo "Step 3: Running database migrations..."
@@ -40,10 +41,12 @@ php artisan migrate --force --no-interaction || true
 
 echo "Step 3b: Installer Setup..."
 
-# The /install endpoint checks if storage/installed exists to determine if setup is complete
-# Migrations are done, but seeding/admin setup still needs to come from installer
-echo "Clearing installation marker - user must complete seeding & admin setup via /install"
-rm -f storage/installed
+# Keep existing installation state by default.
+# To force installer flow on next boot, set FORCE_INSTALLER=true in environment.
+if [ "$FORCE_INSTALLER" = "true" ]; then
+    echo "FORCE_INSTALLER=true: clearing installation marker"
+    rm -f storage/installed
+fi
 
 # If BAGISTO_SEED_BASE_DATA is explicitly true, also auto-seed (for automated CI/CD)
 # Otherwise (default), seeding will be handled by installer web interface
@@ -59,14 +62,18 @@ fi
 
 # 4. Optimization
 echo "Step 4: Caching configuration..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan config:cache || echo "config:cache failed, continuing startup"
+php artisan route:cache || echo "route:cache failed, continuing startup"
+php artisan view:cache || echo "view:cache failed, continuing startup"
 
 # 5. Start Services
 echo "Step 5: Starting services (PHP-FPM & Nginx)..."
+echo "Step 5a: Configuring nginx listen port..."
+sed -i "s/listen 80;/listen ${PORT:-10000};/" /etc/nginx/sites-available/default
+
+echo "Step 5b: Starting services (PHP-FPM & Nginx)..."
 php-fpm -D
-nginx -g "daemon off;"
+exec nginx -g "daemon off;"
 
 
 
