@@ -33,11 +33,15 @@ php artisan storage:link || echo "Storage already linked or link failed."
 # 3. Database & Installer Setup
 echo "Step 3: Running database migrations..."
 
+# Test database connection first
+echo "Testing database connection..."
+php artisan migrate:status || echo "WARNING: Database connection failed or no migrations table exists"
+
 # Always run migrations during deployment (they're idempotent and safe)
 # This prevents the fragile HTTP installer migration calls from timing out on slow servers
 # Use 'migrate' (incremental) instead of 'migrate:fresh' (drop/recreate) - much faster on Render
 echo "Running incremental migrations (fast, idempotent)..."
-php artisan migrate --force --no-interaction || true
+php artisan migrate --force --no-interaction || echo "WARNING: Migrations failed - installation may be incomplete"
 
 echo "Step 3b: Installer Setup..."
 

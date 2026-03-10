@@ -52,10 +52,9 @@ return [
             'prefix'      => env('DB_PREFIX', ''),
             'strict'      => false,
             'engine'      => 'InnoDB ROW_FORMAT=DYNAMIC',
-            'options'     => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            'options'     => env('DB_SSLMODE') === 'require' ? [
                 PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-            ]) : [],
+            ] : [],
         ],
 
         'pgsql' => [

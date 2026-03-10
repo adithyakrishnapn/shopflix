@@ -30,6 +30,8 @@ services:
         value: avnadmin
       - key: DB_SSLMODE
         value: require
+      - key: MYSQL_ATTR_SSL_VERIFY_SERVER_CERT
+        value: "false"
       - key: ASSET_URL
         value: https://shopflix-blue.vercel.app/
       - key: APP_URL
