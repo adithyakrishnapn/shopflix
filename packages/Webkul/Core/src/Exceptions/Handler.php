@@ -55,12 +55,16 @@ class Handler extends BaseHandler
     private function handleHttpException(): void
     {
         $this->renderable(function (HttpException $exception, Request $request) {
-            // During installation, return simple error to avoid database queries
             if (!file_exists(storage_path('installed'))) {
-                return response()->json([
-                    'error' => 'Application not installed',
-                    'message' => 'Please complete the installation at /install'
-                ], $exception->getStatusCode());
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'error' => 'Application not installed',
+                        'message' => 'Please complete the installation at /install'
+                    ], $exception->getStatusCode());
+                }
+                
+                return response('Application is not installed yet or database needs seeding. Please visit <a href="/install">/install</a> to complete the setup.', $exception->getStatusCode())
+                    ->header('Content-Type', 'text/html');
             }
 
             $path = $request->is(config('app.admin_url').'/*') ? 'admin' : 'shop';
@@ -86,13 +90,17 @@ class Handler extends BaseHandler
     private function handleServerException(): void
     {
         $this->renderable(function (Throwable $throwable, Request $request) {
-            // During installation, return simple error to avoid database queries
             if (!file_exists(storage_path('installed'))) {
-                return response()->json([
-                    'error' => 'Application not installed',
-                    'message' => 'Please complete the installation at /install',
-                    'debug' => config('app.debug') ? $throwable->getMessage() : null
-                ], 500);
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'error' => 'Application not installed',
+                        'message' => 'Please complete the installation at /install',
+                        'debug' => config('app.debug') ? $throwable->getMessage() : null
+                    ], 500);
+                }
+                
+                return response('Application is not installed yet or database needs seeding. Please visit <a href="/install">/install</a> to complete the setup.', 500)
+                    ->header('Content-Type', 'text/html');
             }
 
             $path = $request->is(config('app.admin_url').'/*') ? 'admin' : 'shop';
