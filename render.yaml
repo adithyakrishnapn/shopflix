@@ -35,7 +35,7 @@ services:
       - key: APP_URL
         value: https://shopflix-backend.onrender.com # Change this once you have your final Render URL
       - key: BAGISTO_SEED_BASE_DATA
-        value: true
+        value: false
 
 
 
