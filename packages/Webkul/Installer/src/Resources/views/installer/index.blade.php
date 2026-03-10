@@ -1330,7 +1330,7 @@
                             }
                         },
 
-                        nextForm(params) {
+                        nextForm(params, { setErrors }) {
                             const stepActions = {
                                 start: () => {
                                     this.completeStep('start', 'systemRequirements', 'active', 'complete');
@@ -1350,7 +1350,7 @@
                                         allowed_currencies: this.currencies.allowed,
                                     };
 
-                                    this.startSeeding(data, this.envData);
+                                    this.startSeeding(data, this.envData, setErrors);
                                 },
 
                             };
@@ -1435,7 +1435,7 @@
                                 });
                         },
 
-                        startSeeding(selectedParams, allParameters) {
+                        startSeeding(selectedParams, allParameters, setErrors, attempt = 1) {
                             this.$axios.post("{{ route('installer.run_seeder') }}", {
                                 'allParameters': allParameters,
                                 'selectedParameters': selectedParams
@@ -1446,7 +1446,17 @@
                                     this.currentStep = 'createSampleProducts';
                             })
                                 .catch(error => {
-                                    setErrors(error.response.data.errors);
+                                    if (! error?.response && attempt < 5) {
+                                        setTimeout(() => this.startSeeding(selectedParams, allParameters, setErrors, attempt + 1), 1500);
+                                        return;
+                                    }
+
+                                    if (setErrors && error?.response?.data?.errors) {
+                                        setErrors(error.response.data.errors);
+                                    } else {
+                                        const message = error?.response?.data?.error || 'Database seeding failed or timed out. Please retry and check server logs.';
+                                        alert(message);
+                                    }
                                 });
                         },
 

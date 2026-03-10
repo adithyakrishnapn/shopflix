@@ -84,7 +84,10 @@ class EnvironmentManager
         }
 
         try {
-            file_put_contents(base_path('.env'), $data);
+            $currentData = file_get_contents(base_path('.env'));
+            if ($currentData !== $data) {
+                file_put_contents(base_path('.env'), $data);
+            }
         } catch (Exception $e) {
             return false;
         }
