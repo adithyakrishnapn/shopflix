@@ -55,11 +55,11 @@ class DatabaseManager
     public function migration()
     {
         try {
-            // Check if migrations have already been run (tables exist)
-            if (Schema::hasTable('channels')) {
+            // Check if migrations have already been run AND seeding has completed (admins table has records)
+            if (Schema::hasTable('channels') && Schema::hasTable('admins') && DB::table('admins')->count() > 0) {
                 return response()->json([
                     'data'   => true,
-                    'output' => 'Migrations already completed (channels table exists).',
+                    'output' => 'Migrations and seeding already completed.',
                 ]);
             }
 
