@@ -40,6 +40,11 @@ class CanInstall
      */
     public function isAlreadyInstalled()
     {
+        // Cream mode is treated as pre-configured setup and should not show installer UI.
+        if (env('BAGISTO_INSTALLATION_TYPE') === 'cream') {
+            return true;
+        }
+
         if (file_exists(storage_path('installed'))) {
             return true;
         }
