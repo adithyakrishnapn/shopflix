@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        if (env('BAGISTO_SEED_BASE_DATA', false)) {
+        // Check for cream installation mode first
+        $installationType = env('BAGISTO_INSTALLATION_TYPE', 'default');
+        
+        if ($installationType === 'cream' || env('BAGISTO_SEED_BASE_DATA', false)) {
             $this->call(BagistoDatabaseSeeder::class, false, [
                 'parameters' => [
                     'default_locale'     => config('app.locale', 'en'),
@@ -28,10 +31,11 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
+        // Installer mode: clean slate for web installer
         if (File::exists(storage_path('installed'))) {
             File::delete(storage_path('installed'));
         }
 
-        $this->command?->info('Installer mode enabled: skipped Bagisto base data seeding. Open /install to continue setup.');
+        $this->command?->info('Installer mode enabled: Open /install to complete setup.');
     }
 }
