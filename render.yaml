@@ -36,6 +36,8 @@ services:
         value: https://shopflix-blue.vercel.app/
       - key: APP_URL
         value: https://shopflix-backend.onrender.com # Change this once you have your final Render URL
+      - key: BAGISTO_INSTALLATION_TYPE
+        value: cream
       - key: BAGISTO_SEED_BASE_DATA
         value: false
 

@@ -49,10 +49,11 @@ if [ "$FORCE_INSTALLER" = "true" ]; then
     rm -f storage/installed
 fi
 
-# If BAGISTO_SEED_BASE_DATA is explicitly true, also auto-seed (for automated CI/CD)
+# If BAGISTO_SEED_BASE_DATA is explicitly true, or BAGISTO_INSTALLATION_TYPE is cream, auto-seed
 # Otherwise (default), seeding will be handled by installer web interface
-if [ "$BAGISTO_SEED_BASE_DATA" = "true" ]; then
+if [ "$BAGISTO_SEED_BASE_DATA" = "true" ] || [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ]; then
     echo "Auto-seed enabled - running seeders..."
+    export BAGISTO_INSTALLATION_TYPE=cream
     php artisan db:seed --force
     echo "Marking as fully installed"
     touch storage/installed
