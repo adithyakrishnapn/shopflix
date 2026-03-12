@@ -3,6 +3,7 @@
 namespace Webkul\Theme;
 
 use Illuminate\Support\Facades\Vite;
+use Throwable;
 
 class Theme
 {
@@ -90,9 +91,19 @@ class Theme
     {
         $viteUrl = trim($this->vite['package_assets_directory'], '/').'/'.$url;
 
-        return Vite::useHotFile($this->vite['hot_file'])
-            ->useBuildDirectory($this->vite['build_directory'])
-            ->asset($viteUrl);
+        try {
+            return Vite::useHotFile($this->vite['hot_file'])
+                ->useBuildDirectory($this->vite['build_directory'])
+                ->asset($viteUrl);
+        } catch (Throwable $exception) {
+            $fallbackUrl = $this->resolveBuiltAssetUrl($url);
+
+            if ($fallbackUrl) {
+                return $fallbackUrl;
+            }
+
+            throw $exception;
+        }
     }
 
     /**
@@ -105,5 +116,26 @@ class Theme
         return Vite::useHotFile($this->vite['hot_file'])
             ->useBuildDirectory($this->vite['build_directory'])
             ->withEntryPoints($entryPoints);
+    }
+
+    protected function resolveBuiltAssetUrl(string $url): ?string
+    {
+        $buildDirectory = trim($this->vite['build_directory'], '/');
+        $normalizedUrl = trim($url, '/');
+        $directAssetPath = public_path($buildDirectory.'/'.$normalizedUrl);
+
+        if (is_file($directAssetPath)) {
+            return asset($buildDirectory.'/'.$normalizedUrl);
+        }
+
+        $filename = pathinfo($normalizedUrl, PATHINFO_FILENAME);
+        $extension = pathinfo($normalizedUrl, PATHINFO_EXTENSION);
+        $matches = glob(public_path($buildDirectory.'/assets/'.$filename.'-*.'.$extension));
+
+        if (! empty($matches)) {
+            return asset($buildDirectory.'/assets/'.basename($matches[0]));
+        }
+
+        return null;
     }
 }
