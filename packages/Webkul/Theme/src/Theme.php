@@ -102,7 +102,9 @@ class Theme
                 return $fallbackUrl;
             }
 
-            throw $exception;
+            // Asset not found in manifest or build directory — return empty string
+            // rather than crashing the page for a missing image.
+            return '';
         }
     }
 
