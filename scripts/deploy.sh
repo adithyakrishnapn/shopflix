@@ -53,8 +53,12 @@ fi
 # Otherwise (default), seeding will be handled by installer web interface
 if [ "$BAGISTO_SEED_BASE_DATA" = "true" ] || [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ]; then
     echo "Auto-seed enabled - running seeders..."
-    export BAGISTO_INSTALLATION_TYPE=cream
-    php artisan db:seed --force
+    if [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ]; then
+        echo "Cream mode detected - running FreshCreamSeeder"
+        php artisan db:seed --class="Database\\Seeders\\FreshCreamSeeder" --force --no-interaction
+    else
+        php artisan db:seed --force --no-interaction
+    fi
     echo "Marking as fully installed"
     touch storage/installed
     chown www-data:www-data storage/installed
