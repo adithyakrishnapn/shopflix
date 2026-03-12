@@ -298,37 +298,44 @@ class CreamFrontendPageSeeder extends Seeder
         Carbon $timestamp
     ): void {
         try {
-            $pageModel = 'Webkul\CMS\Models\Page';
-            
-            if (!class_exists($pageModel)) {
-                return;
-            }
+            // In this Bagisto version, `url_key` is stored in cms_page_translations.
+            $existingPageId = \DB::table('cms_page_translations')
+                ->where('url_key', $urlKey)
+                ->where('locale', $locale)
+                ->value('cms_page_id');
 
-            $page = $pageModel::firstOrCreate(
-                ['url_key' => $urlKey],
+            $pageId = $existingPageId ?: \DB::table('cms_pages')->insertGetId([
+                'layout'     => null,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+
+            \DB::table('cms_page_translations')->updateOrInsert(
                 [
-                    'status' => $status,
-                    'created_at' => $timestamp,
-                    'updated_at' => $timestamp,
+                    'cms_page_id' => $pageId,
+                    'locale'      => $locale,
+                    'url_key'     => $urlKey,
+                ],
+                [
+                    'page_title'       => $title,
+                    'html_content'     => $content,
+                    'meta_title'       => $title,
+                    'meta_keywords'    => $metaKeywords,
+                    'meta_description' => $metaDescription,
                 ]
             );
 
-            // Add or update page translation
-            $translationModel = 'Webkul\CMS\Models\PageTranslation';
-            
-            if (class_exists($translationModel)) {
-                $translationModel::updateOrCreate(
+            $defaultChannelId = \DB::table('channels')->where('code', 'default')->value('id');
+
+            if ($defaultChannelId) {
+                \DB::table('cms_page_channels')->updateOrInsert(
                     [
-                        'page_id' => $page->id,
-                        'locale'  => $locale,
+                        'cms_page_id' => $pageId,
+                        'channel_id'  => $defaultChannelId,
                     ],
                     [
-                        'title'            => $title,
-                        'content'          => $content,
-                        'page_title'       => $title,
-                        'meta_title'       => $title,
-                        'meta_keywords'    => $metaKeywords,
-                        'meta_description' => $metaDescription,
+                        'cms_page_id' => $pageId,
+                        'channel_id'  => $defaultChannelId,
                     ]
                 );
             }
