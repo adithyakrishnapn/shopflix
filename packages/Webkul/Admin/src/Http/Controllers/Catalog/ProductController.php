@@ -3,6 +3,7 @@
 namespace Webkul\Admin\Http\Controllers\Catalog;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Webkul\Admin\DataGrids\Catalog\ProductDataGrid;
@@ -86,13 +87,32 @@ class ProductController extends Controller
      */
     public function store()
     {
+        $requestedSku = trim((string) request()->input('sku'));
+
+        request()->merge([
+            'sku' => $requestedSku,
+        ]);
+
         $this->validate(request(), [
             'type'                => 'required',
             'attribute_family_id' => 'required',
-            'sku'                 => ['required', 'unique:products,sku', new Slug],
+            'sku'                 => ['required', new Slug],
             'super_attributes'    => 'array|min:1',
             'super_attributes.*'  => 'array|min:1',
         ]);
+
+        $existingProductId = DB::table('products')
+            ->whereRaw('LOWER(sku) = LOWER(?)', [$requestedSku])
+            ->value('id');
+
+        if ($existingProductId) {
+            return new JsonResponse([
+                'message' => 'The given data was invalid.',
+                'errors'  => [
+                    'sku' => ["The sku has already been taken (existing product id: {$existingProductId})."],
+                ],
+            ], 422);
+        }
 
         if (
             ProductType::hasVariants(request()->input('type'))
