@@ -34,11 +34,19 @@ echo "Step 3: Running database migrations..."
 echo "Testing database connection..."
 php artisan migrate:status || echo "WARNING: Database connection failed or no migrations table exists"
 
-# Always run migrations during deployment (they're idempotent and safe)
-# This prevents the fragile HTTP installer migration calls from timing out on slow servers
-# Use 'migrate' (incremental) instead of 'migrate:fresh' (drop/recreate) - much faster on Render
-echo "Running incremental migrations (fast, idempotent)..."
-php artisan migrate --force --no-interaction || echo "WARNING: Migrations failed - installation may be incomplete"
+# If FORCE_FRESH_INSTALL=true, reset database completely (drops all tables and recreates)
+# This is for one-time cleanup of corrupted/inconsistent database states
+if [ "$FORCE_FRESH_INSTALL" = "true" ]; then
+    echo "FORCE_FRESH_INSTALL=true: Running fresh migrations (dropping and recreating all tables)..."
+    php artisan migrate:fresh --force --no-interaction || echo "WARNING: Fresh migrations failed"
+    rm -f storage/installed
+else
+    # Always run migrations during deployment (they're idempotent and safe)
+    # This prevents the fragile HTTP installer migration calls from timing out on slow servers
+    # Use 'migrate' (incremental) instead of 'migrate:fresh' (drop/recreate) - much faster on Render
+    echo "Running incremental migrations (fast, idempotent)..."
+    php artisan migrate --force --no-interaction || echo "WARNING: Migrations failed - installation may be incomplete"
+fi
 
 echo "Step 3b: Installer Setup..."
 
@@ -50,11 +58,12 @@ if [ "$FORCE_INSTALLER" = "true" ]; then
 fi
 
 # If BAGISTO_SEED_BASE_DATA is explicitly true, or BAGISTO_INSTALLATION_TYPE is cream, auto-seed
+# Also auto-seed if FORCE_FRESH_INSTALL=true (since we just dropped all tables)
 # Otherwise (default), seeding will be handled by installer web interface
-if [ "$BAGISTO_SEED_BASE_DATA" = "true" ] || [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ]; then
+if [ "$BAGISTO_SEED_BASE_DATA" = "true" ] || [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ] || [ "$FORCE_FRESH_INSTALL" = "true" ]; then
     echo "Auto-seed enabled - running seeders..."
-    if [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ]; then
-        echo "Cream mode detected - running FreshCreamSeeder"
+    if [ "$BAGISTO_INSTALLATION_TYPE" = "cream" ] || [ "$FORCE_FRESH_INSTALL" = "true" ]; then
+        echo "Cream mode or fresh install detected - running FreshCreamSeeder"
         php artisan db:seed --class="Database\\Seeders\\FreshCreamSeeder" --force --no-interaction
     else
         php artisan db:seed --force --no-interaction

@@ -38,6 +38,8 @@ services:
         value: https://shopflix-backend.onrender.com # Change this once you have your final Render URL
       - key: BAGISTO_INSTALLATION_TYPE
         value: cream
+      - key: FORCE_FRESH_INSTALL
+        value: "false"
       - key: BAGISTO_SEED_BASE_DATA
         value: false
 
