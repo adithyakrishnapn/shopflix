@@ -106,6 +106,19 @@ class ProductController extends Controller
             ->value('id');
 
         if ($existingProductId) {
+            $hasFlatRow = DB::table('product_flat')
+                ->where('product_id', $existingProductId)
+                ->exists();
+
+            if (! $hasFlatRow) {
+                return new JsonResponse([
+                    'data' => [
+                        'redirect_url' => route('admin.catalog.products.edit', $existingProductId),
+                        'message'      => 'Existing incomplete product found. Redirecting to edit it.',
+                    ],
+                ]);
+            }
+
             return new JsonResponse([
                 'message' => 'The given data was invalid.',
                 'errors'  => [
