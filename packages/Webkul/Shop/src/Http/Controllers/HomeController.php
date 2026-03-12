@@ -30,10 +30,17 @@ class HomeController extends Controller
     {
         visitor()->visit();
 
+        $currentChannel = core()->getCurrentChannel();
+        
+        // If no channel exists, database seeding may not have completed
+        if (!$currentChannel) {
+            abort(500, 'No channel configured. Please complete the installation process.');
+        }
+
         $customizations = $this->themeCustomizationRepository->orderBy('sort_order')->findWhere([
             'status'     => self::STATUS,
-            'channel_id' => core()->getCurrentChannel()->id,
-            'theme_code' => core()->getCurrentChannel()->theme,
+            'channel_id' => $currentChannel->id,
+            'theme_code' => $currentChannel->theme,
         ]);
 
         return view('shop::home.index', compact('customizations'));
