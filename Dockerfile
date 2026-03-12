@@ -37,6 +37,9 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Copy Nginx config
 COPY nginx.conf /etc/nginx/sites-available/default
 
+# Override default PHP-FPM pool to increase worker count and fix 504 timeouts
+COPY php-fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Expose port 80
 EXPOSE 80
 
