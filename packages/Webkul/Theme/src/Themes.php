@@ -45,9 +45,9 @@ class Themes
     public function __construct()
     {
         if (! Str::contains(request()->url(), config('app.admin_url').'/')) {
-            $this->defaultThemeCode = Config::get('themes.admin-default', null);
-        } else {
             $this->defaultThemeCode = Config::get('themes.shop-default', null);
+        } else {
+            $this->defaultThemeCode = Config::get('themes.admin-default', null);
         }
 
         $this->laravelViewsPath = Config::get('view.paths');
@@ -243,7 +243,13 @@ class Themes
          * detect the theme and provide Vite assets based on the current theme.
          */
         if (empty($namespace)) {
-            return $this->current()->url($url);
+            $theme = $this->resolveCurrentTheme();
+
+            if ($theme) {
+                return $theme->url($url);
+            }
+
+            return asset($url);
         }
 
         /**
@@ -276,7 +282,13 @@ class Themes
          * detect the theme and provide Vite assets based on the current theme.
          */
         if (empty($namespace)) {
-            return $this->current()->setBagistoVite($entryPoints);
+            $theme = $this->resolveCurrentTheme();
+
+            if ($theme) {
+                return $theme->setBagistoVite($entryPoints);
+            }
+
+            return Vite::withEntryPoints($entryPoints);
         }
 
         /**
@@ -292,5 +304,25 @@ class Themes
         return Vite::useHotFile($viters[$namespace]['hot_file'])
             ->useBuildDirectory($viters[$namespace]['build_directory'])
             ->withEntryPoints($entryPoints);
+    }
+
+    /**
+     * Resolve the current active theme, falling back to configured default.
+     */
+    protected function resolveCurrentTheme(): ?Theme
+    {
+        if ($this->current()) {
+            return $this->current();
+        }
+
+        if ($this->defaultThemeCode && $this->exists($this->defaultThemeCode)) {
+            return $this->set($this->defaultThemeCode);
+        }
+
+        if (! empty($this->themes)) {
+            return $this->set($this->themes[0]->code);
+        }
+
+        return null;
     }
 }
