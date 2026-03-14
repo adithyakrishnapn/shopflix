@@ -17,9 +17,16 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        if ($this->app->environment('production')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        $forceHttps = filter_var(
+            env('APP_FORCE_HTTPS', $this->app->environment('production')),
+            FILTER_VALIDATE_BOOLEAN
+        );
 
+        if ($forceHttps) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
+        if ($this->app->environment('production')) {
             // Aiven Fix: Disable primary key requirement at session level for migrations/seeds
             try {
                 \Illuminate\Support\Facades\DB::statement('SET SESSION sql_require_primary_key = 0;');
