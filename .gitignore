@@ -38,3 +38,6 @@ last_error.txt
 
 
 node_modules
+# Debug HTML captures
+__home*.html
+
