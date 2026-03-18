@@ -1,0 +1,32 @@
+# Production docker-compose override
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Set these environment variables before running:
+#   SERVER_DOMAIN=your-server-domain.com (or IP with port)
+#   SERVER_PROTOCOL=https (or http if not using HTTPS)
+
+services:
+  app:
+    environment:
+      # Override with actual server domain — set via env var or direct value
+      APP_URL: ${SERVER_PROTOCOL:-https}://${SERVER_DOMAIN:-localhost:8080}
+      ASSET_URL: ${SERVER_PROTOCOL:-https}://${SERVER_DOMAIN:-localhost:8080}
+      APP_FORCE_HTTPS: ${SERVER_FORCE_HTTPS:-true}
+      APP_ENV: production
+      APP_DEBUG: "false"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/index.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mysql:
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
