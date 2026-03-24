@@ -11,6 +11,8 @@
 |
 */
 
+use App\Http\Controllers\RazorpayController;
+
 
 Route::get('/storage/{path}', function ($path) {
     $path = storage_path('app/public/' . $path);
@@ -26,6 +28,14 @@ Route::get('/storage/{path}', function ($path) {
 Route::get('/clear-cache', function () {
     Artisan::call('optimize:clear');
     return 'Application cache cleared';
+});
+
+Route::group(['middleware' => ['web']], function () {
+    Route::get('razorpay-redirect', [RazorpayController::class, 'redirect'])->name('razorpay.process');
+
+    Route::post('razorpaycheck', [RazorpayController::class, 'verify'])->name('razorpay.callback');
+
+    Route::post('razorpaycheck-json', [RazorpayController::class, 'verifyJson'])->name('razorpay.callback.json');
 });
 
 

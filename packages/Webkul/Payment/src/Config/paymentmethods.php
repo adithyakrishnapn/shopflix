@@ -18,4 +18,13 @@ return [
         'active'      => true,
         'sort'        => 2,
     ],
+
+    'razorpay' => [
+        'code'        => 'razorpay',
+        'title'       => 'Razorpay',
+        'description' => 'Pay with Razorpay',
+        'class'       => 'Webkul\Payment\Payment\Razorpay',
+        'active'      => false,
+        'sort'        => 5,
+    ],
 ];
