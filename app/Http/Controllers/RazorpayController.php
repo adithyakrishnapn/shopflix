@@ -55,6 +55,9 @@ class RazorpayController extends Controller
                 'receipt'  => 'order_'.$cart->id,
                 'amount'   => $amount,
                 'currency' => 'INR',
+                'notes'    => [
+                    'order_id' => $cart->id,
+                ],
             ]);
         } catch (\Throwable $e) {
             report($e);
@@ -63,6 +66,15 @@ class RazorpayController extends Controller
 
             return redirect()->route('shop.checkout.cart.index');
         }
+
+        // Store cart data temporarily for webhook processing (in case user navigates away)
+        \DB::table('razorpay_orders')->insert([
+            'razorpay_order_id' => $razorpayOrder['id'],
+            'cart_data'         => json_encode((new OrderResource($cart))->jsonSerialize()),
+            'user_id'           => auth()->id(),
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
 
         $request->session()->put('razorpay_order_id', $razorpayOrder['id']);
 
@@ -217,6 +229,124 @@ class RazorpayController extends Controller
         return response()->json([
             'redirect_url' => route('shop.checkout.onepage.success'),
         ]);
+    }
+
+    /**
+     * Webhook handler for Razorpay payment events (server-to-server, independent of user browser).
+     * This ensures DB is updated even if user navigates away during checkout.
+     */
+    public function webhook(Request $request): JsonResponse
+    {
+        $secret = core()->getConfigData('sales.payment_methods.razorpay.secret');
+        $webhookSecret = core()->getConfigData('sales.payment_methods.razorpay.webhook_secret');
+
+        if (empty($webhookSecret)) {
+            \Log::warning('Razorpay webhook secret not configured');
+            return response()->json(['success' => false], 400);
+        }
+
+        // Verify webhook signature
+        $signature = $request->header('X-Razorpay-Signature');
+        $body = $request->getContent();
+        $expectedSignature = hash_hmac('sha256', $body, $webhookSecret);
+
+        if (!hash_equals($signature, $expectedSignature)) {
+            \Log::warning('Razorpay webhook signature verification failed');
+            return response()->json(['success' => false], 401);
+        }
+
+        $event = $request->input('event');
+        $payload = $request->input('payload');
+
+        \Log::info('Razorpay webhook received', ['event' => $event]);
+
+        try {
+            if ($event === 'payment.authorized') {
+                $this->handlePaymentAuthorized($payload);
+            } elseif ($event === 'payment.failed') {
+                $this->handlePaymentFailed($payload);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Throwable $e) {
+            \Log::error('Razorpay webhook error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false], 500);
+        }
+    }
+
+    /**
+     * Handle successful payment.
+     */
+    protected function handlePaymentAuthorized(array $payload): void
+    {
+        $paymentData = $payload['payment'] ?? [];
+        $orderId = $paymentData['notes']['order_id'] ?? null;
+        $paymentId = $paymentData['id'] ?? null;
+
+        if (!$orderId || !$paymentId) {
+            \Log::warning('Razorpay webhook: Missing order_id or payment_id in notes');
+            return;
+        }
+
+        // Check if order already exists (idempotency)
+        $existingOrder = $this->orderRepository->where('razorpay_payment_id', $paymentId)->first();
+        if ($existingOrder) {
+            \Log::info('Razorpay webhook: Order already created for payment ' . $paymentId);
+            return;
+        }
+
+        // Get the stored Razorpay order info from database
+        $razorpayOrderData = \DB::table('razorpay_orders')
+            ->where('razorpay_order_id', $paymentData['order_id'] ?? null)
+            ->first();
+
+        if (!$razorpayOrderData) {
+            \Log::warning('Razorpay webhook: No cart data found for order, creating manual order entry');
+            return;
+        }
+
+        // Create order with stored cart data
+        $cartData = json_decode($razorpayOrderData->cart_data, true);
+        $order = $this->orderRepository->create($cartData);
+
+        // Update with payment info
+        $this->orderRepository->update([
+            'status' => 'processing',
+            'razorpay_payment_id' => $paymentId,
+        ], $order->id);
+
+        // Create invoice if possible
+        if ($order->canInvoice()) {
+            $this->invoiceRepository->create($this->prepareInvoiceData($order));
+        }
+
+        // Clean up temporary storage
+        \DB::table('razorpay_orders')->where('razorpay_order_id', $paymentData['order_id'])->delete();
+
+        \Log::info('Razorpay webhook: Order created via webhook', ['order_id' => $order->id, 'payment_id' => $paymentId]);
+    }
+
+    /**
+     * Handle failed payment.
+     */
+    protected function handlePaymentFailed(array $payload): void
+    {
+        $paymentData = $payload['payment'] ?? [];
+        $paymentId = $paymentData['id'] ?? null;
+        $error = $paymentData['error_source'] ?? 'unknown';
+
+        // Clean up temporary storage
+        $razorpayOrderData = \DB::table('razorpay_orders')
+            ->where('razorpay_order_id', $paymentData['order_id'] ?? null)
+            ->first();
+
+        if ($razorpayOrderData) {
+            \DB::table('razorpay_orders')
+                ->where('razorpay_order_id', $paymentData['order_id'])
+                ->delete();
+        }
+
+        \Log::warning('Razorpay webhook: Payment failed', ['payment_id' => $paymentId, 'error' => $error]);
     }
 
     /**

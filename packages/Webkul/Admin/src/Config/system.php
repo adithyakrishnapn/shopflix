@@ -1841,6 +1841,15 @@ return [
                 'channel_based' => false,
                 'locale_based'  => false,
             ], [
+                'name'          => 'webhook_secret',
+                'title'         => 'Razorpay Webhook Secret',
+                'type'          => 'text',
+                'info'          => 'Set this in Razorpay dashboard: Settings > Webhooks. Secret is shown once during creation.',
+                'depends'       => 'active:1',
+                'validation'    => 'required_if:active,1',
+                'channel_based' => false,
+                'locale_based'  => false,
+            ], [
                 'name'          => 'active',
                 'title'         => 'admin::app.configuration.index.sales.payment-methods.status',
                 'type'          => 'boolean',

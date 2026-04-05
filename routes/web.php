@@ -38,4 +38,7 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('razorpaycheck-json', [RazorpayController::class, 'verifyJson'])->name('razorpay.callback.json');
 });
 
+// Razorpay webhook - server-to-server, outside session middleware
+Route::post('razorpay-webhook', [RazorpayController::class, 'webhook'])->name('razorpay.webhook')->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+
 

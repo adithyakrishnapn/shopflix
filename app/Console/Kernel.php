@@ -28,6 +28,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('indexer:index --type=price')->dailyAt('00:01');
 
         $schedule->command('product:price-rule:index')->dailyAt('00:01');
+
+        // Clean up expired Razorpay temporary order records daily
+        $schedule->command('razorpay:cleanup')->dailyAt('4:00');
     }
 
     /**
