@@ -2,18 +2,22 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
 # Set these environment variables before running:
-#   SERVER_DOMAIN=your-server-domain.com (or IP with port)
-#   SERVER_PROTOCOL=https (or http if not using HTTPS)
+#   SERVER_DOMAIN=your-server-domain.com:80 (or IP:80)
+#   SERVER_PROTOCOL=http (or https if TLS is enabled)
 
 services:
   app:
     environment:
       # Override with actual server domain — set via env var or direct value
-      APP_URL: ${SERVER_PROTOCOL:-https}://${SERVER_DOMAIN:-localhost:8080}
-      ASSET_URL: ${SERVER_PROTOCOL:-https}://${SERVER_DOMAIN:-localhost:8080}
-      APP_FORCE_HTTPS: ${SERVER_FORCE_HTTPS:-true}
+      APP_URL: ${SERVER_PROTOCOL:-http}://${SERVER_DOMAIN:-35.211.158.18:80}
+      ASSET_URL: ${SERVER_PROTOCOL:-http}://${SERVER_DOMAIN:-35.211.158.18:80}
+      APP_FORCE_HTTPS: ${SERVER_FORCE_HTTPS:-false}
       APP_ENV: production
       APP_DEBUG: "false"
+      BAGISTO_SEED_BASE_DATA: ${BAGISTO_SEED_BASE_DATA:-false}
+      FORCE_FRESH_INSTALL: ${FORCE_FRESH_INSTALL:-false}
+    ports:
+      - "${APP_PORT:-80}:10000"
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:10000/index.php"]

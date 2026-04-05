@@ -223,8 +223,16 @@
 
                         this.$axios.post('{{ route('shop.checkout.onepage.orders.store') }}')
                             .then(response => {
-                                if (response.data.data.redirect) {
-                                    window.location.href = response.data.data.redirect_url;
+                                const payload = response.data.data || {};
+
+                                if (payload.razorpay) {
+                                    this.openRazorpayInline(payload.razorpay);
+
+                                    return;
+                                }
+
+                                if (payload.redirect) {
+                                    window.location.href = payload.redirect_url;
                                 } else {
                                     window.location.href = '{{ route('shop.checkout.onepage.success') }}';
                                 }
@@ -235,6 +243,60 @@
                                 this.isPlacingOrder = false
 
                                 this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
+                            });
+                    },
+
+                    openRazorpayInline(options) {
+                        const ensureScript = window.Razorpay
+                            ? Promise.resolve()
+                            : new Promise((resolve, reject) => {
+                                const script = document.createElement('script');
+
+                                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                                script.onload = resolve;
+                                script.onerror = () => reject(new Error('Unable to load Razorpay checkout script.'));
+
+                                document.body.appendChild(script);
+                            });
+
+                        ensureScript
+                            .then(() => {
+                                const self = this;
+
+                                options.handler = function (response) {
+                                    self.$axios.post('{{ route('razorpay.callback.json') }}', {
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        razorpay_order_id: response.razorpay_order_id || options.order_id,
+                                    }).then(({ data }) => {
+                                        window.location.href = data.redirect_url || '{{ route('shop.checkout.onepage.success') }}';
+                                    }).catch((error) => {
+                                        self.isPlacingOrder = false;
+
+                                        self.$emitter.emit('add-flash', {
+                                            type: 'error',
+                                            message: error?.response?.data?.message || 'Payment verification failed.',
+                                        });
+                                    });
+                                };
+
+                                options.modal = {
+                                    ondismiss: function () {
+                                        self.isPlacingOrder = false;
+                                    },
+                                    escape: true,
+                                    backdropclose: false,
+                                };
+
+                                new Razorpay(options).open();
+                            })
+                            .catch((error) => {
+                                this.isPlacingOrder = false;
+
+                                this.$emitter.emit('add-flash', {
+                                    type: 'error',
+                                    message: error.message,
+                                });
                             });
                     }
                 },

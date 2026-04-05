@@ -4,6 +4,7 @@ namespace Webkul\Shop\Http\Controllers\API;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;
+use Razorpay\Api\Api;
 use Webkul\Checkout\Facades\Cart;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Payment\Facades\Payment;
@@ -164,6 +165,69 @@ class OnepageController extends APIController
         }
 
         $cart = Cart::getCart();
+
+        if ($cart->payment?->method === 'razorpay') {
+            $keyId = core()->getConfigData('sales.payment_methods.razorpay.key_id');
+            $secret = core()->getConfigData('sales.payment_methods.razorpay.secret');
+
+            if (empty($keyId) || empty($secret)) {
+                return response()->json([
+                    'message' => 'Razorpay is not configured. Please contact support.',
+                ], 500);
+            }
+
+            if (! $cart->billing_address) {
+                return response()->json([
+                    'message' => trans('shop::app.checkout.onepage.address.check-billing-address'),
+                ], 500);
+            }
+
+            $amount = (int) round($cart->grand_total * 100);
+
+            if ($amount <= 0) {
+                return response()->json([
+                    'message' => 'Invalid order amount for payment.',
+                ], 500);
+            }
+
+            try {
+                $api = new Api($keyId, $secret);
+
+                $razorpayOrder = $api->order->create([
+                    'receipt'  => 'order_'.$cart->id,
+                    'amount'   => $amount,
+                    'currency' => 'INR',
+                ]);
+
+                session()->put('razorpay_order_id', $razorpayOrder['id']);
+
+                return new JsonResource([
+                    'redirect' => false,
+                    'razorpay' => [
+                        'key'      => $keyId,
+                        'amount'   => $amount,
+                        'currency' => 'INR',
+                        'name'     => $cart->billing_address->name,
+                        'description' => 'Order #'.$cart->id,
+                        'order_id' => $razorpayOrder['id'],
+                        'prefill'  => [
+                            'name'    => $cart->billing_address->name,
+                            'email'   => $cart->billing_address->email,
+                            'contact' => $cart->billing_address->phone,
+                        ],
+                        'theme'    => [
+                            'color' => '#0F172A',
+                        ],
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+
+                return response()->json([
+                    'message' => 'Unable to initialize Razorpay payment at the moment.',
+                ], 500);
+            }
+        }
 
         if ($redirectUrl = Payment::getRedirectUrl($cart)) {
             return new JsonResource([

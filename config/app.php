@@ -236,9 +236,7 @@ return [
         Webkul\SocialShare\Providers\SocialShareServiceProvider::class,
         Webkul\Tax\Providers\TaxServiceProvider::class,
         Webkul\Theme\Providers\ThemeServiceProvider::class,
-        Webkul\User\Providers\UserServiceProvider::class,
-
-        Wontonee\Razorpay\Providers\RazorpayServiceProvider::class
+        Webkul\User\Providers\UserServiceProvider::class
     ])->toArray(),
 
     /*

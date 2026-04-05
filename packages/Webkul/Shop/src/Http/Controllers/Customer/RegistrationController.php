@@ -6,6 +6,7 @@ use Cookie;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Webkul\Core\Repositories\SubscribersListRepository;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
@@ -44,7 +45,24 @@ class RegistrationController extends Controller
      */
     public function store(RegistrationRequest $registrationRequest)
     {
-        $customerGroup = core()->getConfigData('customer.settings.create_new_account_options.default_group');
+        $customerGroupCode = core()->getConfigData('customer.settings.create_new_account_options.default_group') ?: 'guest';
+
+        $customerGroup = $this->customerGroupRepository->findOneWhere(['code' => $customerGroupCode])
+            ?: $this->customerGroupRepository->findOneWhere(['code' => 'guest']);
+
+        if (! $customerGroup) {
+            throw ValidationException::withMessages([
+                'email' => trans('shop::app.customers.signup-form.verify-failed'),
+            ]);
+        }
+
+        $channel = core()->getCurrentChannel();
+
+        if (! $channel) {
+            throw ValidationException::withMessages([
+                'email' => trans('shop::app.customers.signup-form.verify-failed'),
+            ]);
+        }
 
         $data = array_merge($registrationRequest->only([
             'first_name',
@@ -56,8 +74,8 @@ class RegistrationController extends Controller
             'password'                  => bcrypt(request()->input('password')),
             'api_token'                 => Str::random(80),
             'is_verified'               => ! core()->getConfigData('customer.settings.email.verification'),
-            'customer_group_id'         => $this->customerGroupRepository->findOneWhere(['code' => $customerGroup])->id,
-            'channel_id'                => core()->getCurrentChannel()->id,
+            'customer_group_id'         => $customerGroup->id,
+            'channel_id'                => $channel->id,
             'token'                     => md5(uniqid(rand(), true)),
             'subscribed_to_news_letter' => (bool) request()->input('is_subscribed'),
         ]);
